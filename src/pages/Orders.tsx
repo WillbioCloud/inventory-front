@@ -8,6 +8,7 @@ import {
   MapPin,
   X,
   User,
+  Box,
 } from "lucide-react";
 import { MetricCard, ColumnDropdown } from "../components/SharedUI";
 
@@ -41,6 +42,16 @@ const OrderDetailsModal = ({
 
   if (!order) return null;
 
+  const getProgressStep = (status: string) => {
+    if (status === "Entregue") return 4;
+    if (status === "Enviado") return 3;
+    if (status === "Em Processamento") return 2;
+    if (status === "Cancelado") return -1;
+    return 1;
+  };
+
+  const currentStep = getProgressStep(order.status);
+
   return (
     <div className="fixed inset-0 bg-zinc-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
       <div className="bg-white rounded-[24px] shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -71,37 +82,259 @@ const OrderDetailsModal = ({
         </div>
 
         <div className="p-6 overflow-y-auto flex-1 bg-zinc-50/50">
-          {!showTracking ? (
-            <div className="grid grid-cols-1 gap-6">
-              <div className="bg-white p-5 rounded-2xl border border-zinc-200/60 shadow-sm">
-                <h3 className="text-sm font-bold text-zinc-900 mb-4 flex items-center gap-2">
-                  <User size={16} className="text-[#3B5BDB]" /> Contato do
-                  Cliente
-                </h3>
-                <div className="space-y-3 text-[13px]">
-                  <div className="flex justify-between border-b border-zinc-50 pb-2">
-                    <span className="text-zinc-500">Cliente</span>{" "}
-                    <span className="font-semibold text-zinc-900">
-                      {order.customer}
-                    </span>
+          {showTracking ? (
+            <div className="bg-white rounded-2xl border border-zinc-200/60 shadow-sm p-8 max-w-lg mx-auto my-4">
+              <h3 className="text-lg font-bold text-zinc-900 mb-8 text-center">
+                Status de Entrega
+              </h3>
+
+              {currentStep === -1 ? (
+                <div className="text-center py-10">
+                  <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <X size={32} />
                   </div>
-                  <div className="flex justify-between border-b border-zinc-50 pb-2">
-                    <span className="text-zinc-500">Destino</span>{" "}
-                    <span className="font-semibold text-zinc-900">
+                  <h4 className="text-lg font-bold text-zinc-900 mb-1">
+                    Pedido Cancelado
+                  </h4>
+                  <p className="text-zinc-500 text-sm">
+                    Este pedido foi cancelado e não será enviado.
+                  </p>
+                </div>
+              ) : (
+                <div className="relative pl-2">
+                  <div className="absolute left-[23px] top-4 bottom-4 w-0.5 bg-zinc-100 z-0">
+                    <div
+                      className="w-full bg-[#3B5BDB] transition-all duration-500"
+                      style={{
+                        height: `${(Math.max(0, currentStep - 1) / 3) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+
+                  <div className="space-y-10 relative z-10">
+                    <div className="flex items-start gap-6">
+                      <div
+                        className={`w-10 h-10 rounded-full border-[3px] flex items-center justify-center shrink-0 bg-white transition-colors duration-500 ${currentStep >= 1 ? "border-[#3B5BDB] text-[#3B5BDB]" : "border-zinc-200 text-zinc-300"}`}
+                      >
+                        <ShoppingBag size={16} />
+                      </div>
+                      <div className="pt-1">
+                        <h4
+                          className={`text-sm font-bold ${currentStep >= 1 ? "text-zinc-900" : "text-zinc-500"}`}
+                        >
+                          Pedido Realizado
+                        </h4>
+                        <p className="text-[13px] text-zinc-500 mt-0.5">
+                          Recebemos o seu pedido
+                        </p>
+                        {currentStep >= 1 && (
+                          <span className="text-[11px] font-bold text-zinc-400 mt-1 block">
+                            {order.date}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-6">
+                      <div
+                        className={`w-10 h-10 rounded-full border-[3px] flex items-center justify-center shrink-0 bg-white transition-colors duration-500 ${currentStep >= 2 ? "border-[#3B5BDB] text-[#3B5BDB]" : "border-zinc-200 text-zinc-300"}`}
+                      >
+                        <Box size={16} />
+                      </div>
+                      <div className="pt-1">
+                        <h4
+                          className={`text-sm font-bold ${currentStep >= 2 ? "text-zinc-900" : "text-zinc-500"}`}
+                        >
+                          Em Processamento
+                        </h4>
+                        <p className="text-[13px] text-zinc-500 mt-0.5">
+                          O pedido está sendo embalado no armazém
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-6">
+                      <div
+                        className={`w-10 h-10 rounded-full border-[3px] flex items-center justify-center shrink-0 bg-white transition-colors duration-500 ${currentStep >= 3 ? "border-[#3B5BDB] text-[#3B5BDB]" : "border-zinc-200 text-zinc-300"}`}
+                      >
+                        <Truck size={16} />
+                      </div>
+                      <div className="pt-1">
+                        <h4
+                          className={`text-sm font-bold ${currentStep >= 3 ? "text-zinc-900" : "text-zinc-500"}`}
+                        >
+                          Enviado
+                        </h4>
+                        <p className="text-[13px] text-zinc-500 mt-0.5">
+                          O pedido está a caminho de {order.destination}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-6">
+                      <div
+                        className={`w-10 h-10 rounded-full border-[3px] flex items-center justify-center shrink-0 bg-white transition-colors duration-500 ${currentStep >= 4 ? "border-[#3B5BDB] text-[#3B5BDB]" : "border-zinc-200 text-zinc-300"}`}
+                      >
+                        <MapPin size={16} />
+                      </div>
+                      <div className="pt-1">
+                        <h4
+                          className={`text-sm font-bold ${currentStep >= 4 ? "text-zinc-900" : "text-zinc-500"}`}
+                        >
+                          Entregue
+                        </h4>
+                        <p className="text-[13px] text-zinc-500 mt-0.5">
+                          O pedido foi entregue com sucesso
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white p-5 rounded-2xl border border-zinc-200/60 shadow-sm">
+                  <h3 className="text-sm font-bold text-zinc-900 mb-4 flex items-center gap-2">
+                    <User size={16} className="text-[#3B5BDB]" /> Contato do
+                    Cliente
+                  </h3>
+                  <div className="space-y-3 text-[13px]">
+                    <div className="flex justify-between border-b border-zinc-50 pb-2">
+                      <span className="text-zinc-500">Cliente</span>
+                      <span className="font-semibold text-zinc-900">
+                        {order.customer}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-zinc-50 pb-2">
+                      <span className="text-zinc-500">Pessoa de Contato</span>
+                      <span className="font-semibold text-zinc-900">
+                        {order.contact?.name || "Jane Doe"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-zinc-50 pb-2">
+                      <span className="text-zinc-500">Email</span>
+                      <span className="font-semibold text-zinc-900">
+                        {order.contact?.email || "contact@example.com"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Telefone</span>
+                      <span className="font-semibold text-zinc-900">
+                        {order.contact?.phone || "+1 555-0192"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-zinc-200/60 shadow-sm flex flex-col">
+                  <h3 className="text-sm font-bold text-zinc-900 mb-4 flex items-center gap-2">
+                    <MapPin size={16} className="text-[#3B5BDB]" /> Endereço de
+                    Entrega
+                  </h3>
+                  <p className="text-[13px] text-zinc-600 leading-relaxed font-medium flex-1">
+                    {order.address ||
+                      "Av. Empresarial 123, Sala 400\nDistrito Logístico\n" +
+                        order.destination}
+                  </p>
+                  <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between">
+                    <span className="text-[12px] text-zinc-500">
+                      Zona de Destino
+                    </span>
+                    <span className="text-[12px] font-bold text-zinc-900 bg-zinc-100 px-2.5 py-1 rounded-md">
                       {order.destination}
                     </span>
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <MapPin className="mx-auto text-blue-500 mb-4" size={48} />
-              <h4 className="text-lg font-bold">
-                Módulo de Rastreio em Construção
-              </h4>
-            </div>
+
+              <div className="bg-white rounded-2xl border border-zinc-200/60 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-zinc-100">
+                  <h3 className="text-sm font-bold text-zinc-900">
+                    Itens do Pedido
+                  </h3>
+                </div>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-zinc-50/50 border-b border-zinc-100 text-[12px] text-zinc-500">
+                      <th className="py-3 px-5 font-bold">Nome do Produto</th>
+                      <th className="py-3 px-5 font-bold">SKU</th>
+                      <th className="py-3 px-5 font-bold text-center">Qtd</th>
+                      <th className="py-3 px-5 font-bold">Preço</th>
+                      <th className="py-3 px-5 font-bold text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-50">
+                    {order.products ? (
+                      order.products.map((item: any, i: number) => (
+                        <tr key={i} className="hover:bg-zinc-50/30">
+                          <td className="py-3 px-5 text-[13px] font-bold text-zinc-900">
+                            {item.name}
+                          </td>
+                          <td className="py-3 px-5 text-[13px] text-zinc-500">
+                            {item.sku}
+                          </td>
+                          <td className="py-3 px-5 text-[13px] font-bold text-zinc-600 text-center">
+                            {item.qty}
+                          </td>
+                          <td className="py-3 px-5 text-[13px] text-zinc-600">
+                            {item.price}
+                          </td>
+                          <td className="py-3 px-5 text-[13px] font-bold text-zinc-900 text-right">
+                            {item.total}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="py-3 px-5 text-[13px] font-bold text-zinc-900">
+                          Pacote de Preenchimento Padrão
+                        </td>
+                        <td className="py-3 px-5 text-[13px] text-zinc-500">
+                          BNDL-001
+                        </td>
+                        <td className="py-3 px-5 text-[13px] font-bold text-zinc-600 text-center">
+                          {order.items}
+                        </td>
+                        <td className="py-3 px-5 text-[13px] text-zinc-600">
+                          -
+                        </td>
+                        <td className="py-3 px-5 text-[13px] font-bold text-zinc-900 text-right">
+                          {order.total}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
+        </div>
+
+        <div className="p-6 border-t border-zinc-100 bg-white flex justify-end z-10">
+          <div className="w-full max-w-xs space-y-2">
+            <div className="flex justify-between text-[13px]">
+              <span className="text-zinc-500">Subtotal</span>
+              <span className="font-semibold text-zinc-900">
+                {order.subtotal || order.total}
+              </span>
+            </div>
+            <div className="flex justify-between text-[13px]">
+              <span className="text-zinc-500">Impostos (0%)</span>
+              <span className="font-semibold text-zinc-900">
+                {order.tax || "$0.00"}
+              </span>
+            </div>
+            <div className="border-t border-zinc-100 pt-2 mt-2 flex justify-between items-center">
+              <span className="text-sm font-bold text-zinc-900">
+                Total Geral
+              </span>
+              <span className="text-xl font-bold text-[#3B5BDB]">
+                {order.total}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -135,6 +368,36 @@ export function Orders() {
       items: 24,
       total: "$3,420.00",
       status: "Em Processamento",
+      contact: {
+        name: "João Silva",
+        email: "joao@techflow.br",
+        phone: "+55 11 98765-4321",
+      },
+      address:
+        "Av. Paulista, 1000, Bela Vista, São Paulo, SP, 01310-100, Brasil",
+      products: [
+        {
+          name: "Cadeira de Escritório Ergonômica",
+          sku: "FUR-001-BLK",
+          qty: 10,
+          price: "$249.00",
+          total: "$2,490.00",
+        },
+        {
+          name: 'Monitor 4K 27"',
+          sku: "ELC-MON-4K27",
+          qty: 2,
+          price: "$399.00",
+          total: "$798.00",
+        },
+        {
+          name: "Mouse Sem Fio",
+          sku: "ELC-MOU-WL1",
+          qty: 12,
+          price: "$11.00",
+          total: "$132.00",
+        },
+      ],
     },
     {
       id: "#ORD-8022",
@@ -144,6 +407,28 @@ export function Orders() {
       items: 12,
       total: "$1,890.50",
       status: "Enviado",
+      contact: {
+        name: "Maria Santos",
+        email: "maria@globalretail.com.br",
+        phone: "+55 21 99876-5432",
+      },
+      address: "Av. Rio Branco, 156, Centro, Rio de Janeiro, RJ, 20040-003",
+      products: [
+        {
+          name: "Mesa com Ajuste de Altura",
+          sku: "FUR-DSK-STD",
+          qty: 5,
+          price: "$189.50",
+          total: "$947.50",
+        },
+        {
+          name: "Luminária de Mesa LED",
+          sku: "APP-LMP-01",
+          qty: 7,
+          price: "$45.00",
+          total: "$315.00",
+        },
+      ],
     },
     {
       id: "#ORD-8023",
@@ -153,6 +438,21 @@ export function Orders() {
       items: 150,
       total: "$12,400.00",
       status: "Entregue",
+      contact: {
+        name: "Carlos Mendes",
+        email: "carlos.m@nexus.corp",
+        phone: "+55 31 98888-7777",
+      },
+      address: "Av. Afonso Pena, 2000, Savassi, Belo Horizonte, MG, 30130-005",
+      products: [
+        {
+          name: "Teclado Mecânico Sem Fio",
+          sku: "ELC-KEY-092",
+          qty: 150,
+          price: "$82.66",
+          total: "$12,400.00",
+        },
+      ],
     },
   ];
 
@@ -294,7 +594,8 @@ export function Orders() {
               {filteredOrders.map((item, i) => (
                 <tr
                   key={i}
-                  className="hover:bg-zinc-50/50 transition-colors group"
+                  onClick={() => setSelectedOrder(item)}
+                  className="hover:bg-zinc-50/50 transition-colors group cursor-pointer"
                 >
                   <td className="py-4 pl-6 pr-4 font-bold text-[13px] text-zinc-900">
                     {item.id}
@@ -331,7 +632,11 @@ export function Orders() {
                   </td>
                   <td className="py-4 pr-6 pl-4 text-right">
                     <button
-                      onClick={() => setSelectedOrder(item)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedOrder(item);
+                      }}
                       className="text-zinc-400 hover:text-[#3B5BDB] p-1.5 rounded-lg hover:bg-[#3B5BDB]/10 opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <MoreHorizontal size={18} />
