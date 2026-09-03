@@ -600,12 +600,22 @@ export function Inventory() {
 
         <div className="overflow-x-auto min-h-[300px] pb-32">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-[300px] text-zinc-400">
-              <Loader2 className="h-8 w-8 animate-spin mb-4 text-[#3B5BDB]" />
-              <p className="text-sm font-medium">
-                Carregando produtos da Nuvem...
-              </p>
-            </div>
+            <table className="w-full text-left border-collapse">
+              <tbody className="divide-y divide-zinc-100/80">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={index} className="animate-pulse">
+                    <td className="py-4 pl-6 pr-4 flex items-center gap-4"><div className="w-4 h-4 rounded bg-zinc-200/60" /><div className="w-10 h-10 rounded-lg bg-zinc-200/60 shrink-0" /><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 px-4"><div className="h-4 w-20 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 px-4"><div className="h-4 w-16 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 px-4"><div className="h-4 w-12 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 px-4"><div className="h-6 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-4 pr-6 pl-4"><div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : error ? (
             <div className="flex flex-col items-center justify-center h-[300px] text-red-500">
               <AlertTriangle className="h-8 w-8 mb-4" />

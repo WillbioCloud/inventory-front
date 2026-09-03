@@ -194,27 +194,30 @@ const HeaderSection = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full 2xl:w-auto">
           <MetricCard
+            isLoading={isLoading}
             icon={<Box className="text-zinc-700" size={24} strokeWidth={1.5} />}
             title="Total em Estoque"
-            value={isLoading ? "..." : metrics.totalItems}
+            value={metrics.totalItems}
             trend="Atualizado"
             trendUp={true}
           />
           <MetricCard
+            isLoading={isLoading}
             icon={
               <Layers className="text-zinc-700" size={24} strokeWidth={1.5} />
             }
             title="Baixo Estoque"
-            value={isLoading ? "..." : metrics.lowStock}
+            value={metrics.lowStock}
             trend="Abaixo de 10"
             trendUp={false}
           />
           <MetricCard
+            isLoading={isLoading}
             icon={
               <PackageX className="text-zinc-700" size={24} strokeWidth={1.5} />
             }
             title="Valor em Estoque"
-            value={isLoading ? "..." : formattedValue}
+            value={formattedValue}
             trend="Financeiro"
             trendUp={true}
           />
@@ -222,6 +225,7 @@ const HeaderSection = () => {
       </div>
       <div className="flex flex-col sm:flex-row gap-4 w-full justify-end border-t border-zinc-100 pt-6 mt-2">
         <MetricCard
+          isLoading={isLoading}
           icon={
             <ShoppingBag
               className="text-[#3B5BDB]"
@@ -230,25 +234,27 @@ const HeaderSection = () => {
             />
           }
           title="Vendas Registradas"
-          value={isLoading ? "..." : metrics.totalOrders}
+          value={metrics.totalOrders}
           trend="Total"
           trendUp={true}
         />
         <MetricCard
+          isLoading={isLoading}
           icon={
             <Clock className="text-orange-500" size={24} strokeWidth={1.5} />
           }
           title="Em Processamento"
-          value={isLoading ? "..." : metrics.ordersPending}
+          value={metrics.ordersPending}
           trend="Fila"
           trendUp={false}
         />
         <MetricCard
+          isLoading={isLoading}
           icon={
             <Truck className="text-emerald-500" size={24} strokeWidth={1.5} />
           }
           title="Despachados"
-          value={isLoading ? "..." : metrics.ordersShipped}
+          value={metrics.ordersShipped}
           trend="Caminho"
           trendUp={true}
         />
@@ -289,7 +295,9 @@ const ControlsSection = () => {
       });
       setIsModalOpen(false);
       setMovement({ productId: "", type: "ENTRY", quantity: "", reason: "" });
-      window.location.reload();
+      alert(
+        "Movimentação registrada! Clique em 'Atualizar' no painel para sincronizar.",
+      );
     } catch (error: any) {
       alert(
         "Erro ao registrar movimentação. Verifique se há saldo suficiente no estoque.",
@@ -1070,14 +1078,18 @@ const RecentActivities = () => {
           </thead>
           <tbody className="divide-y divide-zinc-100/80">
             {isLoading ? (
-              <tr>
-                <td
-                  colSpan={9}
-                  className="py-8 text-center text-[13px] font-medium text-zinc-500"
-                >
-                  Carregando atividades...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, index) => (
+                <tr key={index} className="animate-pulse border-b border-zinc-50">
+                  <td className="py-5 pl-6 pr-4"><div className="h-4 w-20 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 px-4"><div className="h-4 w-16 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 px-4"><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 px-4"><div className="h-6 w-20 bg-zinc-200/60 rounded-md" /></td>
+                  <td className="py-5 pr-6 pl-4"><div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" /></td>
+                </tr>
+              ))
             ) : filteredActivities.length > 0 ? (
               filteredActivities.map((item, i) => (
                 <tr

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowUpRight, ArrowDownRight, Settings2 } from 'lucide-react';
 
-export const MetricCard = ({ icon, title, value, trend, trendUp }: any) => (
+export const MetricCard = ({ icon, title, value, trend, trendUp, isLoading }: any) => (
   <div className="bg-white rounded-3xl p-5 flex items-center gap-5 shadow-sm border border-zinc-200/60 flex-1 min-w-[260px]">
     <div className="w-14 h-14 rounded-[18px] border border-zinc-100 flex items-center justify-center bg-zinc-50 shrink-0">
       {icon}
@@ -9,11 +9,20 @@ export const MetricCard = ({ icon, title, value, trend, trendUp }: any) => (
     <div className="flex-1">
       <div className="text-[13px] font-semibold text-zinc-500 mb-1 tracking-wide">{title}</div>
       <div className="flex items-baseline gap-3">
-        <span className="text-[28px] font-bold text-zinc-900 tracking-tight leading-none">{value}</span>
-        <span className={`text-[13px] font-bold flex items-center ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
-          {trendUp ? <ArrowUpRight size={14} className="mr-0.5" strokeWidth={2.5} /> : <ArrowDownRight size={14} className="mr-0.5" strokeWidth={2.5} />}
-          {trend}
-        </span>
+        {isLoading ? (
+          <>
+            <div className="h-8 w-24 bg-zinc-200/60 animate-pulse rounded-lg"></div>
+            <div className="h-4 w-12 bg-zinc-200/60 animate-pulse rounded-md"></div>
+          </>
+        ) : (
+          <>
+            <span className="text-[28px] font-bold text-zinc-900 tracking-tight leading-none">{value}</span>
+            <span className={`text-[13px] font-bold flex items-center ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+              {trendUp ? <ArrowUpRight size={14} className="mr-0.5" strokeWidth={2.5} /> : <ArrowDownRight size={14} className="mr-0.5" strokeWidth={2.5} />}
+              {trend}
+            </span>
+          </>
+        )}
       </div>
     </div>
   </div>

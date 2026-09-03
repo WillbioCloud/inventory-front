@@ -274,6 +274,7 @@ export function Customers() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
+          isLoading={isLoading}
           icon={<User className="text-[#3B5BDB]" size={24} strokeWidth={1.5} />}
           title="Total de Clientes"
           value="2,408"
@@ -281,6 +282,7 @@ export function Customers() {
           trendUp={true}
         />
         <MetricCard
+          isLoading={isLoading}
           icon={
             <Activity className="text-[#10B981]" size={24} strokeWidth={1.5} />
           }
@@ -290,6 +292,7 @@ export function Customers() {
           trendUp={true}
         />
         <MetricCard
+          isLoading={isLoading}
           icon={
             <DollarSign
               className="text-[#F59E0B]"
@@ -386,14 +389,18 @@ export function Customers() {
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="py-12 text-center text-[13px] font-medium text-zinc-500"
-                  >
-                    Carregando clientes...
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, index) => (
+                  <tr key={index} className="animate-pulse">
+                    <td className="py-5 px-6 flex items-center gap-3"><div className="w-4 h-4 rounded bg-zinc-200/60" /><div className="space-y-2"><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /><div className="h-3 w-16 bg-zinc-200/60 rounded-md" /></div></td>
+                    <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-12 bg-zinc-200/60 rounded-md mx-auto" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-20 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-6 w-16 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 pr-6 pl-4"><div className="h-6 w-20 bg-zinc-200/60 rounded-md ml-auto" /></td>
+                  </tr>
+                ))
               ) : filteredCustomers.length === 0 ? (
                 <tr>
                   <td

@@ -473,7 +473,9 @@ export function Orders() {
         destination: "",
         items: [{ productId: "", quantity: 1 }],
       });
-      window.location.reload();
+      alert(
+        "Pedido gerado com sucesso! Atualize a página para ver as novas estatísticas.",
+      );
     } catch (error) {
       console.error(error);
       alert(
@@ -678,6 +680,7 @@ export function Orders() {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full 2xl:w-auto">
           <MetricCard
+            isLoading={isLoading}
             icon={
               <ShoppingBag
                 className="text-zinc-700"
@@ -686,20 +689,22 @@ export function Orders() {
               />
             }
             title="Total de Pedidos"
-            value="1,248"
+            value={dbOrders.length.toString()}
             trend="+12.5%"
             trendUp={true}
           />
           <MetricCard
+            isLoading={isLoading}
             icon={
               <Clock className="text-zinc-700" size={24} strokeWidth={1.5} />
             }
             title="Aguardando Envio"
-            value="42"
+            value={dbOrders.filter((order) => order.status === "Em Processamento").length.toString()}
             trend="-4.2%"
             trendUp={false}
           />
           <MetricCard
+            isLoading={isLoading}
             icon={
               <Truck className="text-zinc-700" size={24} strokeWidth={1.5} />
             }
@@ -792,14 +797,18 @@ export function Orders() {
             </thead>
             <tbody className="divide-y divide-zinc-100/80">
               {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="py-12 text-center text-sm text-zinc-500"
-                  >
-                    Carregando pedidos...
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, index) => (
+                  <tr key={index} className="animate-pulse">
+                    <td className="py-5 pl-6 pr-4"><div className="h-4 w-20 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-12 bg-zinc-200/60 rounded-md mx-auto" /></td>
+                    <td className="py-5 px-4"><div className="h-4 w-16 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 px-4"><div className="h-6 w-24 bg-zinc-200/60 rounded-md" /></td>
+                    <td className="py-5 pr-6 pl-4"><div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" /></td>
+                  </tr>
+                ))
               ) : (
                 filteredOrders.map((item, i) => (
                   <tr
