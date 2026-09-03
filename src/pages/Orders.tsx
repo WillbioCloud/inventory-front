@@ -699,7 +699,9 @@ export function Orders() {
               <Clock className="text-zinc-700" size={24} strokeWidth={1.5} />
             }
             title="Aguardando Envio"
-            value={dbOrders.filter((order) => order.status === "Em Processamento").length.toString()}
+            value={dbOrders
+              .filter((order) => order.status === "Em Processamento")
+              .length.toString()}
             trend="-4.2%"
             trendUp={false}
           />
@@ -796,74 +798,88 @@ export function Orders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100/80">
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="py-5 pl-6 pr-4"><div className="h-4 w-20 bg-zinc-200/60 rounded-md" /></td>
-                    <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
-                    <td className="py-5 px-4"><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /></td>
-                    <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
-                    <td className="py-5 px-4"><div className="h-4 w-12 bg-zinc-200/60 rounded-md mx-auto" /></td>
-                    <td className="py-5 px-4"><div className="h-4 w-16 bg-zinc-200/60 rounded-md" /></td>
-                    <td className="py-5 px-4"><div className="h-6 w-24 bg-zinc-200/60 rounded-md" /></td>
-                    <td className="py-5 pr-6 pl-4"><div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" /></td>
-                  </tr>
-                ))
-              ) : (
-                filteredOrders.map((item, i) => (
-                  <tr
-                    key={i}
-                    onClick={() => setSelectedOrder(item)}
-                    className="hover:bg-zinc-50/50 transition-colors group cursor-pointer"
-                  >
-                    <td className="py-4 pl-6 pr-4 font-bold text-[13px] text-zinc-900">
-                      {item.id}
-                    </td>
-                    {visibleCols.date && (
-                      <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
-                        {item.date}
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, index) => (
+                    <tr key={index} className="animate-pulse">
+                      <td className="py-5 pl-6 pr-4">
+                        <div className="h-4 w-20 bg-zinc-200/60 rounded-md" />
                       </td>
-                    )}
-                    <td className="py-4 px-4 text-[13px] font-bold text-zinc-800">
-                      {item.customer}
-                    </td>
-                    {visibleCols.destination && (
-                      <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
-                        {item.destination}
+                      <td className="py-5 px-4">
+                        <div className="h-4 w-24 bg-zinc-200/60 rounded-md" />
                       </td>
-                    )}
-                    {visibleCols.items && (
-                      <td className="py-4 px-4 text-[13px] font-bold text-zinc-600 text-center">
-                        {item.items}
+                      <td className="py-5 px-4">
+                        <div className="h-4 w-32 bg-zinc-200/60 rounded-md" />
                       </td>
-                    )}
-                    {visibleCols.total && (
-                      <td className="py-4 px-4 text-[13px] font-bold text-zinc-900">
-                        {item.total}
+                      <td className="py-5 px-4">
+                        <div className="h-4 w-24 bg-zinc-200/60 rounded-md" />
                       </td>
-                    )}
-                    <td className="py-4 px-4">
-                      <span
-                        className={`px-2.5 py-1 rounded-[6px] text-[11px] font-bold uppercase tracking-wider border ${getOrderStatusStyle(item.status)}`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="py-4 pr-6 pl-4 text-right">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrder(item);
-                        }}
-                        className="text-zinc-400 hover:text-[#3B5BDB] p-1.5 rounded-lg hover:bg-[#3B5BDB]/10 opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+                      <td className="py-5 px-4">
+                        <div className="h-4 w-12 bg-zinc-200/60 rounded-md mx-auto" />
+                      </td>
+                      <td className="py-5 px-4">
+                        <div className="h-4 w-16 bg-zinc-200/60 rounded-md" />
+                      </td>
+                      <td className="py-5 px-4">
+                        <div className="h-6 w-24 bg-zinc-200/60 rounded-md" />
+                      </td>
+                      <td className="py-5 pr-6 pl-4">
+                        <div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" />
+                      </td>
+                    </tr>
+                  ))
+                : filteredOrders.map((item, i) => (
+                    <tr
+                      key={i}
+                      onClick={() => setSelectedOrder(item)}
+                      className="hover:bg-zinc-50/50 transition-colors group cursor-pointer"
+                    >
+                      <td className="py-4 pl-6 pr-4 font-bold text-[13px] text-zinc-900">
+                        {item.id}
+                      </td>
+                      {visibleCols.date && (
+                        <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
+                          {item.date}
+                        </td>
+                      )}
+                      <td className="py-4 px-4 text-[13px] font-bold text-zinc-800">
+                        {item.customer}
+                      </td>
+                      {visibleCols.destination && (
+                        <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
+                          {item.destination}
+                        </td>
+                      )}
+                      {visibleCols.items && (
+                        <td className="py-4 px-4 text-[13px] font-bold text-zinc-600 text-center">
+                          {item.items}
+                        </td>
+                      )}
+                      {visibleCols.total && (
+                        <td className="py-4 px-4 text-[13px] font-bold text-zinc-900">
+                          {item.total}
+                        </td>
+                      )}
+                      <td className="py-4 px-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-[6px] text-[11px] font-bold uppercase tracking-wider border ${getOrderStatusStyle(item.status)}`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-6 pl-4 text-right">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedOrder(item);
+                          }}
+                          className="text-zinc-400 hover:text-[#3B5BDB] p-1.5 rounded-lg hover:bg-[#3B5BDB]/10 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </div>

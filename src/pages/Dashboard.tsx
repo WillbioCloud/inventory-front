@@ -1079,15 +1079,34 @@ const RecentActivities = () => {
           <tbody className="divide-y divide-zinc-100/80">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
-                <tr key={index} className="animate-pulse border-b border-zinc-50">
-                  <td className="py-5 pl-6 pr-4"><div className="h-4 w-20 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 px-4"><div className="h-4 w-16 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 px-4"><div className="h-4 w-32 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 px-4"><div className="h-4 w-24 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 px-4"><div className="h-6 w-20 bg-zinc-200/60 rounded-md" /></td>
-                  <td className="py-5 pr-6 pl-4"><div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" /></td>
+                <tr
+                  key={index}
+                  className="animate-pulse border-b border-zinc-50"
+                >
+                  <td className="py-5 pl-6 pr-4">
+                    <div className="h-4 w-20 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 px-4">
+                    <div className="h-4 w-24 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 px-4">
+                    <div className="h-4 w-16 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 px-4">
+                    <div className="h-4 w-32 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 px-4">
+                    <div className="h-4 w-24 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 px-4">
+                    <div className="h-4 w-24 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 px-4">
+                    <div className="h-6 w-20 bg-zinc-200/60 rounded-md" />
+                  </td>
+                  <td className="py-5 pr-6 pl-4">
+                    <div className="h-6 w-8 bg-zinc-200/60 rounded-md ml-auto" />
+                  </td>
                 </tr>
               ))
             ) : filteredActivities.length > 0 ? (

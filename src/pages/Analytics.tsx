@@ -222,9 +222,7 @@ export function Analytics() {
             />
           }
           title="Receita Total"
-          value={
-            formatCurrency(metrics.totalRevenue)
-          }
+          value={formatCurrency(metrics.totalRevenue)}
           trend="+14.5%"
           trendUp={true}
         />
@@ -234,9 +232,7 @@ export function Analytics() {
             <Activity className="text-[#10B981]" size={24} strokeWidth={1.5} />
           }
           title="Ticket Médio"
-          value={
-            formatCurrency(metrics.averageTicket)
-          }
+          value={formatCurrency(metrics.averageTicket)}
           trend="+5.2%"
           trendUp={true}
         />
