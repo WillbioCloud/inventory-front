@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search,
   RefreshCw,
   Plus,
+  ShoppingBag,
+  Clock,
+  Truck,
   ArrowUpRight,
   ArrowDownRight,
   MoreHorizontal,
@@ -127,16 +130,20 @@ const HeaderSection = () => {
     totalItems: 0,
     lowStock: 0,
     totalValue: 0,
+    totalOrders: 0,
+    ordersPending: 0,
+    ordersShipped: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchMetrics() {
       try {
-        const [prodRes, lowStockRes, valueRes] = await Promise.all([
+        const [prodRes, lowStockRes, valueRes, ordersRes] = await Promise.all([
           api.get("/products"),
           api.get("/products/low-stock"),
           api.get("/products/total-value"),
+          api.get("/orders"),
         ]);
 
         const totalQtd = prodRes.data.reduce(
@@ -144,10 +151,21 @@ const HeaderSection = () => {
           0,
         );
 
+        const orders = ordersRes.data || [];
+        const pending = orders.filter(
+          (order: any) => order.status === "PROCESSING",
+        ).length;
+        const shipped = orders.filter(
+          (order: any) => order.status === "SHIPPED",
+        ).length;
+
         setMetrics({
           totalItems: totalQtd,
           lowStock: lowStockRes.data.length,
           totalValue: valueRes.data || 0,
+          totalOrders: orders.length,
+          ordersPending: pending,
+          ordersShipped: shipped,
         });
       } catch (error) {
         console.error("Erro ao carregar métricas", error);
@@ -164,39 +182,74 @@ const HeaderSection = () => {
   }).format(metrics.totalValue);
 
   return (
-    <div className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-6 pt-2">
-      <div>
-        <h1 className="text-[32px] font-bold text-zinc-900 tracking-tight leading-none mb-2">
-          Visão Geral
-        </h1>
-        <p className="text-zinc-500 text-sm font-medium">
-          Insights em tempo real do seu negócio
-        </p>
+    <div className="flex flex-col gap-6 pt-2">
+      <div className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-[32px] font-bold text-zinc-900 tracking-tight leading-none mb-2">
+            Visão Geral
+          </h1>
+          <p className="text-zinc-500 text-sm font-medium">
+            Insights em tempo real do seu negócio
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4 w-full 2xl:w-auto">
+          <MetricCard
+            icon={<Box className="text-zinc-700" size={24} strokeWidth={1.5} />}
+            title="Total em Estoque"
+            value={isLoading ? "..." : metrics.totalItems}
+            trend="Atualizado"
+            trendUp={true}
+          />
+          <MetricCard
+            icon={
+              <Layers className="text-zinc-700" size={24} strokeWidth={1.5} />
+            }
+            title="Baixo Estoque"
+            value={isLoading ? "..." : metrics.lowStock}
+            trend="Abaixo de 10"
+            trendUp={false}
+          />
+          <MetricCard
+            icon={
+              <PackageX className="text-zinc-700" size={24} strokeWidth={1.5} />
+            }
+            title="Valor em Estoque"
+            value={isLoading ? "..." : formattedValue}
+            trend="Financeiro"
+            trendUp={true}
+          />
+        </div>
       </div>
-      <div className="flex flex-col sm:flex-row gap-4 w-full 2xl:w-auto">
+      <div className="flex flex-col sm:flex-row gap-4 w-full justify-end border-t border-zinc-100 pt-6 mt-2">
         <MetricCard
-          icon={<Box className="text-zinc-700" size={24} strokeWidth={1.5} />}
-          title="Total de Itens em Estoque"
-          value={isLoading ? "..." : metrics.totalItems}
-          trend="Atualizado"
+          icon={
+            <ShoppingBag
+              className="text-[#3B5BDB]"
+              size={24}
+              strokeWidth={1.5}
+            />
+          }
+          title="Vendas Registradas"
+          value={isLoading ? "..." : metrics.totalOrders}
+          trend="Total"
           trendUp={true}
         />
         <MetricCard
           icon={
-            <Layers className="text-zinc-700" size={24} strokeWidth={1.5} />
+            <Clock className="text-orange-500" size={24} strokeWidth={1.5} />
           }
-          title="Alertas de Baixo Estoque"
-          value={isLoading ? "..." : metrics.lowStock}
-          trend="Abaixo de 10"
+          title="Em Processamento"
+          value={isLoading ? "..." : metrics.ordersPending}
+          trend="Fila"
           trendUp={false}
         />
         <MetricCard
           icon={
-            <PackageX className="text-zinc-700" size={24} strokeWidth={1.5} />
+            <Truck className="text-emerald-500" size={24} strokeWidth={1.5} />
           }
-          title="Valor Total em Estoque"
-          value={isLoading ? "..." : formattedValue}
-          trend="Financeiro"
+          title="Despachados"
+          value={isLoading ? "..." : metrics.ordersShipped}
+          trend="Caminho"
           trendUp={true}
         />
       </div>
@@ -389,6 +442,7 @@ const ControlsSection = () => {
 
 const AnalyticView = () => {
   const [stats, setStats] = useState({ min: 0, avg: 0, max: 0 });
+  const [timeFilter, setTimeFilter] = useState("Ano");
 
   useEffect(() => {
     api
@@ -407,7 +461,7 @@ const AnalyticView = () => {
         }
       })
       .catch(console.error);
-  }, []);
+  }, [timeFilter]);
 
   const months = [
     "Jan",
@@ -424,17 +478,16 @@ const AnalyticView = () => {
     "Dez",
   ];
 
-  const heatmapData = Array.from({ length: 4 }, (_, row) =>
-    Array.from({ length: 12 }, (_, col) => {
-      const intensityMap = [
-        [0, 1, 2, 0, 1, 2, 2, 0, 1, 0, 2, 1],
-        [0, 2, 2, 1, 2, 1, 3, 0, 2, 1, 3, 2],
-        [1, 3, 1, 1, 0, 3, 3, 2, 0, 0, 1, 3],
-        [3, 0, 3, 3, 1, 0, 0, 2, 3, 0, 2, 3],
-      ];
-      return intensityMap[row][col];
-    }),
-  );
+  const heatmapData = useMemo(() => {
+    const maxIntensity =
+      timeFilter === "Dia" ? 1 : timeFilter === "Semana" ? 2 : 3;
+
+    return Array.from({ length: 4 }, () =>
+      Array.from({ length: 12 }, () =>
+        Math.floor(Math.random() * (maxIntensity + 1)),
+      ),
+    );
+  }, [timeFilter]);
 
   return (
     <div className="bg-white rounded-[24px] p-7 shadow-sm border border-zinc-200/60 h-full flex flex-col">
@@ -444,17 +497,21 @@ const AnalyticView = () => {
         </h2>
         <div className="flex items-center gap-3">
           <div className="flex bg-zinc-50 rounded-[10px] p-1 border border-zinc-100">
-            {["Dia", "Semana", "Mês", "Tri", "Ano", "Todos"].map((filter) => (
-              <button
-                key={filter}
-                className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-shadow ${filter === "Ano" ? "bg-white shadow-sm text-zinc-900 ring-1 ring-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"}`}
-              >
-                {filter === "Ano" && (
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3B5BDB] mr-1.5 mb-[1px]"></span>
-                )}
-                {filter}
-              </button>
-            ))}
+            {["Dia", "Semana", "Mês", "Tri", "Ano", "Todos"].map((filter) => {
+              const isActive = filter === timeFilter;
+              return (
+                <button
+                  key={filter}
+                  onClick={() => setTimeFilter(filter)}
+                  className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-shadow ${isActive ? "bg-white shadow-sm text-zinc-900 ring-1 ring-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"}`}
+                >
+                  {isActive && (
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3B5BDB] mr-1.5 mb-[1px]"></span>
+                  )}
+                  {filter}
+                </button>
+              );
+            })}
           </div>
           <button className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-600 transition-colors">
             <ArrowUpRight size={20} strokeWidth={2} />
@@ -555,7 +612,21 @@ const AnalyticView = () => {
           <span className="text-zinc-900">Estoque de Transação</span>
           <div className="flex items-center gap-2">
             <div className="w-3.5 h-3.5 rounded-[4px] bg-zinc-100"></div>
-            (0 - 200)
+            {["Dia", "Semana", "Mês", "Tri", "Ano", "Todos"].map((filter) => {
+              const isActive = filter === timeFilter;
+              return (
+                <button
+                  key={filter}
+                  className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-shadow ${isActive ? "bg-white shadow-sm text-zinc-900 ring-1 ring-zinc-200/50" : "text-zinc-500 hover:text-zinc-900"}`}
+                  onClick={() => setTimeFilter(filter)}
+                >
+                  {isActive && (
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3B5BDB] mr-1.5 mb-[1px]"></span>
+                  )}
+                  {filter}
+                </button>
+              );
+            })}
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3.5 h-3.5 rounded-[4px] bg-[#C7D2FE]"></div>

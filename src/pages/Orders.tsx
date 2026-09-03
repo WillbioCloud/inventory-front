@@ -9,8 +9,19 @@ import {
   X,
   User,
   Box,
+  Plus,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { MetricCard, ColumnDropdown } from "../components/SharedUI";
+import { api } from "../services/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const getOrderStatusStyle = (status: string) => {
   switch (status) {
@@ -352,6 +363,19 @@ export function Orders() {
     total: true,
   });
 
+  const [dbOrders, setDbOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [productsList, setProductsList] = useState<any[]>([]);
+  const [customersList, setCustomersList] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    customerName: "",
+    customerEmail: "",
+    destination: "",
+    items: [{ productId: "", quantity: 1 }],
+  });
+
   const tableColumns = [
     { id: "date", label: "Data" },
     { id: "destination", label: "Destino" },
@@ -359,104 +383,108 @@ export function Orders() {
     { id: "total", label: "Total" },
   ];
 
-  const orders = [
-    {
-      id: "#ORD-8021",
-      date: "15 Ago 2026",
-      customer: "TechFlow Solutions",
-      destination: "São Paulo, SP",
-      items: 24,
-      total: "$3,420.00",
-      status: "Em Processamento",
-      contact: {
-        name: "João Silva",
-        email: "joao@techflow.br",
-        phone: "+55 11 98765-4321",
-      },
-      address:
-        "Av. Paulista, 1000, Bela Vista, São Paulo, SP, 01310-100, Brasil",
-      products: [
-        {
-          name: "Cadeira de Escritório Ergonômica",
-          sku: "FUR-001-BLK",
-          qty: 10,
-          price: "$249.00",
-          total: "$2,490.00",
-        },
-        {
-          name: 'Monitor 4K 27"',
-          sku: "ELC-MON-4K27",
-          qty: 2,
-          price: "$399.00",
-          total: "$798.00",
-        },
-        {
-          name: "Mouse Sem Fio",
-          sku: "ELC-MOU-WL1",
-          qty: 12,
-          price: "$11.00",
-          total: "$132.00",
-        },
-      ],
-    },
-    {
-      id: "#ORD-8022",
-      date: "14 Ago 2026",
-      customer: "Global Retail",
-      destination: "Rio de Janeiro, RJ",
-      items: 12,
-      total: "$1,890.50",
-      status: "Enviado",
-      contact: {
-        name: "Maria Santos",
-        email: "maria@globalretail.com.br",
-        phone: "+55 21 99876-5432",
-      },
-      address: "Av. Rio Branco, 156, Centro, Rio de Janeiro, RJ, 20040-003",
-      products: [
-        {
-          name: "Mesa com Ajuste de Altura",
-          sku: "FUR-DSK-STD",
-          qty: 5,
-          price: "$189.50",
-          total: "$947.50",
-        },
-        {
-          name: "Luminária de Mesa LED",
-          sku: "APP-LMP-01",
-          qty: 7,
-          price: "$45.00",
-          total: "$315.00",
-        },
-      ],
-    },
-    {
-      id: "#ORD-8023",
-      date: "14 Ago 2026",
-      customer: "Nexus Corp",
-      destination: "Belo Horizonte, MG",
-      items: 150,
-      total: "$12,400.00",
-      status: "Entregue",
-      contact: {
-        name: "Carlos Mendes",
-        email: "carlos.m@nexus.corp",
-        phone: "+55 31 98888-7777",
-      },
-      address: "Av. Afonso Pena, 2000, Savassi, Belo Horizonte, MG, 30130-005",
-      products: [
-        {
-          name: "Teclado Mecânico Sem Fio",
-          sku: "ELC-KEY-092",
-          qty: 150,
-          price: "$82.66",
-          total: "$12,400.00",
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [ordersRes, productsRes, customersRes] = await Promise.all([
+          api.get("/orders"),
+          api.get("/products"),
+          api.get("/customers"),
+        ]);
+        const currency = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        });
+        const formattedOrders = ordersRes.data.map((order: any) => ({
+          id: `#ORD-${order.id.toString().padStart(4, "0")}`,
+          date: new Date(order.createdAt).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          customer: order.customerName,
+          destination: order.destination,
+          items: order.items.reduce(
+            (total: number, item: any) => total + item.quantity,
+            0,
+          ),
+          total: currency.format(order.totalAmount),
+          status:
+            order.status === "PROCESSING"
+              ? "Em Processamento"
+              : order.status === "SHIPPED"
+                ? "Enviado"
+                : order.status === "DELIVERED"
+                  ? "Entregue"
+                  : "Cancelado",
+          products: order.items.map((item: any) => ({
+            name: item.product.name,
+            sku: item.product.sku,
+            qty: item.quantity,
+            price: currency.format(item.unitPrice),
+            total: currency.format(item.subTotal),
+          })),
+        }));
+        setDbOrders(formattedOrders.reverse());
+        setProductsList(productsRes.data);
+        setCustomersList(customersRes.data);
+      } catch (error) {
+        console.error("Erro ao carregar os dados:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-  const filteredOrders = orders.filter((item) => {
+    loadData();
+  }, []);
+
+  const addOrderItem = () => {
+    setNewOrder({
+      ...newOrder,
+      items: [...newOrder.items, { productId: "", quantity: 1 }],
+    });
+  };
+
+  const removeOrderItem = (index: number) => {
+    setNewOrder({
+      ...newOrder,
+      items: newOrder.items.filter((_, itemIndex) => itemIndex !== index),
+    });
+  };
+
+  const updateOrderItem = (index: number, field: string, value: string) => {
+    const updatedItems = [...newOrder.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: field === "quantity" ? parseInt(value) || 1 : value,
+    };
+    setNewOrder({ ...newOrder, items: updatedItems });
+  };
+
+  const handleCreateOrder = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsCreating(true);
+    try {
+      await api.post("/orders", newOrder);
+      setIsModalOpen(false);
+      setNewOrder({
+        customerName: "",
+        customerEmail: "",
+        destination: "",
+        items: [{ productId: "", quantity: 1 }],
+      });
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Erro ao criar o pedido. Verifique se há estoque suficiente para os itens solicitados.",
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const filteredOrders = dbOrders.filter((item) => {
     const matchesSearch =
       item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.customer.toLowerCase().includes(searchQuery.toLowerCase());
@@ -475,6 +503,178 @@ export function Orders() {
           <p className="text-zinc-500 text-sm font-medium">
             Acompanhe, processe e cumpra os pedidos dos clientes
           </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger className="h-10 px-5 rounded-[14px] bg-[#3B5BDB] text-white flex items-center gap-2 hover:bg-[#324fc2] font-bold text-[13px] shadow-sm shadow-[#3B5BDB]/30 transition-colors cursor-pointer">
+              <Plus size={18} strokeWidth={2.5} /> Novo Pedido
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px] bg-white rounded-[24px]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-zinc-900">
+                  Registrar Novo Pedido
+                </DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={handleCreateOrder}
+                className="space-y-4 mt-2 max-h-[70vh] overflow-y-auto px-1"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[13px] font-bold text-zinc-700 mb-1">
+                      Cliente Cadastrado
+                    </label>
+                    <select
+                      required
+                      value={newOrder.customerName}
+                      onChange={(event) => {
+                        const selectedName = event.target.value;
+                        const customer = customersList.find(
+                          (item) => item.company === selectedName,
+                        );
+                        setNewOrder({
+                          ...newOrder,
+                          customerName: selectedName,
+                          customerEmail: customer ? customer.email : "",
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-[13px] focus:ring-2 focus:ring-[#3B5BDB]/20 focus:border-[#3B5BDB] outline-none transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="" disabled>
+                        Selecione um cliente...
+                      </option>
+                      {customersList.map((customer) => (
+                        <option key={customer.id} value={customer.company}>
+                          {customer.company} ({customer.contact})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-bold text-zinc-700 mb-1">
+                      E-mail
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newOrder.customerEmail}
+                      onChange={(event) =>
+                        setNewOrder({
+                          ...newOrder,
+                          customerEmail: event.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-[13px] focus:ring-2 focus:ring-[#3B5BDB]/20 focus:border-[#3B5BDB] outline-none transition-all"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-bold text-zinc-700 mb-1">
+                    Destino (Cidade, UF)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newOrder.destination}
+                    onChange={(event) =>
+                      setNewOrder({
+                        ...newOrder,
+                        destination: event.target.value,
+                      })
+                    }
+                    placeholder="Ex: São Paulo, SP"
+                    className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-[13px] focus:ring-2 focus:ring-[#3B5BDB]/20 focus:border-[#3B5BDB] outline-none transition-all"
+                  />
+                </div>
+                <div className="pt-2 border-t border-zinc-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-[13px] font-bold text-zinc-700">
+                      Produtos (Carrinho)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addOrderItem}
+                      className="text-[#3B5BDB] text-[12px] font-bold hover:underline flex items-center gap-1"
+                    >
+                      <Plus size={14} /> Adicionar Item
+                    </button>
+                  </div>
+                  {newOrder.items.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex gap-2 mb-2 items-center bg-zinc-50 p-2 rounded-xl border border-zinc-200/50"
+                    >
+                      <select
+                        required
+                        value={item.productId}
+                        onChange={(event) =>
+                          updateOrderItem(
+                            index,
+                            "productId",
+                            event.target.value,
+                          )
+                        }
+                        className="flex-1 px-3 py-2 bg-white border border-zinc-200 rounded-lg text-[13px] focus:ring-2 focus:ring-[#3B5BDB]/20 focus:border-[#3B5BDB] outline-none"
+                      >
+                        <option value="" disabled>
+                          Selecione um produto...
+                        </option>
+                        {productsList.map((product) => (
+                          <option
+                            key={product.id}
+                            value={product.id}
+                            disabled={product.quantity <= 0}
+                          >
+                            {product.name} (Estoque: {product.quantity || 0})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={item.quantity}
+                        onChange={(event) =>
+                          updateOrderItem(index, "quantity", event.target.value)
+                        }
+                        className="w-20 px-3 py-2 bg-white border border-zinc-200 rounded-lg text-[13px] focus:ring-2 focus:ring-[#3B5BDB]/20 outline-none"
+                        placeholder="Qtd"
+                      />
+                      {newOrder.items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeOrderItem(index)}
+                          className="text-zinc-400 hover:text-red-500 p-2"
+                          aria-label="Remover item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-4 flex justify-end gap-3 border-t border-zinc-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 text-[13px] font-bold text-zinc-600 hover:bg-zinc-100 rounded-xl transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCreating}
+                    className="px-5 py-2 bg-[#3B5BDB] text-white text-[13px] font-bold rounded-xl hover:bg-[#324fc2] transition-colors disabled:opacity-70 flex items-center"
+                  >
+                    {isCreating && (
+                      <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                    )}{" "}
+                    Finalizar Venda
+                  </button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full 2xl:w-auto">
           <MetricCard
@@ -591,59 +791,70 @@ export function Orders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100/80">
-              {filteredOrders.map((item, i) => (
-                <tr
-                  key={i}
-                  onClick={() => setSelectedOrder(item)}
-                  className="hover:bg-zinc-50/50 transition-colors group cursor-pointer"
-                >
-                  <td className="py-4 pl-6 pr-4 font-bold text-[13px] text-zinc-900">
-                    {item.id}
-                  </td>
-                  {visibleCols.date && (
-                    <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
-                      {item.date}
-                    </td>
-                  )}
-                  <td className="py-4 px-4 text-[13px] font-bold text-zinc-800">
-                    {item.customer}
-                  </td>
-                  {visibleCols.destination && (
-                    <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
-                      {item.destination}
-                    </td>
-                  )}
-                  {visibleCols.items && (
-                    <td className="py-4 px-4 text-[13px] font-bold text-zinc-600 text-center">
-                      {item.items}
-                    </td>
-                  )}
-                  {visibleCols.total && (
-                    <td className="py-4 px-4 text-[13px] font-bold text-zinc-900">
-                      {item.total}
-                    </td>
-                  )}
-                  <td className="py-4 px-4">
-                    <span
-                      className={`px-2.5 py-1 rounded-[6px] text-[11px] font-bold uppercase tracking-wider border ${getOrderStatusStyle(item.status)}`}
-                    >
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="py-4 pr-6 pl-4 text-right">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedOrder(item);
-                      }}
-                      className="text-zinc-400 hover:text-[#3B5BDB] p-1.5 rounded-lg hover:bg-[#3B5BDB]/10 opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      <MoreHorizontal size={18} />
-                    </button>
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="py-12 text-center text-sm text-zinc-500"
+                  >
+                    Carregando pedidos...
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredOrders.map((item, i) => (
+                  <tr
+                    key={i}
+                    onClick={() => setSelectedOrder(item)}
+                    className="hover:bg-zinc-50/50 transition-colors group cursor-pointer"
+                  >
+                    <td className="py-4 pl-6 pr-4 font-bold text-[13px] text-zinc-900">
+                      {item.id}
+                    </td>
+                    {visibleCols.date && (
+                      <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
+                        {item.date}
+                      </td>
+                    )}
+                    <td className="py-4 px-4 text-[13px] font-bold text-zinc-800">
+                      {item.customer}
+                    </td>
+                    {visibleCols.destination && (
+                      <td className="py-4 px-4 text-[13px] font-medium text-zinc-600">
+                        {item.destination}
+                      </td>
+                    )}
+                    {visibleCols.items && (
+                      <td className="py-4 px-4 text-[13px] font-bold text-zinc-600 text-center">
+                        {item.items}
+                      </td>
+                    )}
+                    {visibleCols.total && (
+                      <td className="py-4 px-4 text-[13px] font-bold text-zinc-900">
+                        {item.total}
+                      </td>
+                    )}
+                    <td className="py-4 px-4">
+                      <span
+                        className={`px-2.5 py-1 rounded-[6px] text-[11px] font-bold uppercase tracking-wider border ${getOrderStatusStyle(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-4 pr-6 pl-4 text-right">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedOrder(item);
+                        }}
+                        className="text-zinc-400 hover:text-[#3B5BDB] p-1.5 rounded-lg hover:bg-[#3B5BDB]/10 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
