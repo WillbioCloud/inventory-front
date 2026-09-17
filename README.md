@@ -1,75 +1,114 @@
-# React + TypeScript + Vite
+# Inventory Management System — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface web moderna para gerenciamento completo de **inventário, pedidos, clientes e métricas analíticas**, desenvolvida em **React 19**, **TypeScript** e **Tailwind CSS v4**, consumindo a API REST do ecossistema de inventário com autenticação JWT.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Tecnologias Utilizadas
 
-## React Compiler
+| Categoria | Ferramenta |
+| :--- | :--- |
+| **Core** | React 19, TypeScript, Vite |
+| **Roteamento** | React Router DOM v7 |
+| **Estilização** | Tailwind CSS v4, Lucide React, Tw-Animate |
+| **Componentes UI** | Shadcn UI (Radix/Base-UI), CVA, Clsx, Tailwind Merge |
+| **Consumo de API** | Axios (com interceptor de Bearer Token) |
+| **Gráficos & Métricas** | Recharts |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 📦 Módulos e Funcionalidades
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* **Autenticação JWT:** Rota de Login com persistência de token no `localStorage` e guarda de rotas privadas (`PrivateRoute`).
+* **Dashboard Executivo:** Visão panorâmica de indicadores-chave de desempenho (KPIs), movimentações recentes e resumos operacionais.
+* **Gestão de Inventário:** Listagem tabular de itens, controle de níveis de estoque, pesquisa rápida e modais para cadastro/edição de produtos.
+* **Pedidos (Orders):** Acompanhamento do fluxo de pedidos e status das transações comerciais.
+* **Clientes (Customers):** Cadastro, histórico e gestão da carteira de compradores.
+* **Analytics:** Gráficos interativos de receita, volume de saídas e métricas financeiras alimentados por Recharts.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## ⚙️ Variáveis de Ambiente
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Crie um arquivo `.env` na raiz do projeto tomando como base o modelo abaixo:
 
+```env
+VITE_API_URL=[https://inventory-api-yvvz.onrender.com](https://inventory-api-yvvz.onrender.com)
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+| Variável | Descrição | Exemplo |
+| :--- | :--- | :--- |
+| `VITE_API_URL` | URL base do backend de inventário | `http://localhost:8080` ou URL do Render |
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## ▶️ Como Executar Localmente
 
+### Pré-requisitos
+* Node.js (v18+)
+* Gerenciador de pacotes `npm` ou `pnpm`
+
+### Instalação
+
+1. **Clone o repositório:**
+   ```bash
+   git clone [https://github.com/WillbioCloud/inventory-front.git](https://github.com/WillbioCloud/inventory-front.git)
+   cd inventory-front
+   ```
+
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure as variáveis de ambiente:**
+   ```bash
+   cp .env.example .env # ou configure seu VITE_API_URL
+   ```
+
+4. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+
+O frontend estará disponível por padrão em `http://localhost:5173`.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```text
+src/
+├── assets/          # Recursos visuais estáticos e logos
+├── components/      # Componentes reutilizáveis e UI base (Shadcn UI)
+├── lib/             # Utilitários globais (cn, helpers)
+├── pages/           # Telas do fluxo da aplicação
+│   ├── Analytics.tsx
+│   ├── Customers.tsx
+│   ├── Dashboard.tsx
+│   ├── Inventory.tsx
+│   ├── Layout.tsx
+│   ├── Login.tsx
+│   └── Orders.tsx
+├── services/        # Configuração do Axios e interceptores HTTP
+├── App.tsx          # Definição e proteção das rotas da aplicação
+└── main.tsx         # Ponto de entrada da aplicação React
 ```
+
+---
+
+## 🔗 Backend Relacionado
+
+Este frontend foi desenvolvido especificamente para consumir a **Inventory API** (desenvolvida em Spring Boot / Java). O código-fonte do backend está disponível no repositório:
+
+
+* 📦 [WillbioCloud / inventory-api](https://github.com/WillbioCloud/inventory-api)
+
+
+---
+
+## 👨‍💻 Autor
+
+**Ricardo William de Macedo Oliveira**
+
+Desenvolvedor Fullstack com foco em arquiteturas modernas utilizando **Java, Spring Boot, React e TypeScript**.
